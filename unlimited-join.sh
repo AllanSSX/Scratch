@@ -1,0 +1,1 @@
+awk -F"\t" -v OFS="\t" 'F!=FILENAME { FNUM++; F=FILENAME } {COL[$1]++; C=$1; $1=""; A[C, FNUM]=$0 } END {for(X in COL){printf("%s", X);for(N=1; N<=FNUM; N++) printf("%s", A[X, N]);printf("\n");}}'
