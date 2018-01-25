@@ -16,15 +16,15 @@ def main(args):
 	GCs = []
 	for seq in SeqIO.parse(args.fasta, "fasta"):
 		
-		nucl = {'A':0, 'a':0,'C':0, 'c':0,'G':0, 'g':0,'T':0, 't':0,'N':0, 'n':0,}
+		nucl = {'A':0, 'a':0,'C':0, 'c':0,'G':0, 'g':0,'T':0, 't':0,'N':0, 'n':0}
 		sequence = str(seq.seq)
 		for codon in sequence:
 			if codon in nucl:
 				nucl[codon] += 1
 				
 		A = nucl['A'] + nucl['a']; C = nucl['C'] + nucl['c']; G = nucl['G'] + nucl['g']; T = nucl['T'] + nucl['t']; N = nucl['N'] + nucl['n']
-		size = A + G + C + T
-		GC = (G + C) / (size) * 100
+		size = A + G + C + T		
+		GC = float((G + C)) / float(size) * 100
 		print(seq.id, GC)
 		GCs.append(GC)
 	GC = round(sum(GCs) / float(len(GCs)), 2)
