@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import argparse
+import sys
 from Bio import SeqIO
+from Bio.SeqIO.FastaIO import FastaWriter
 
 def getArgs():
 	parser = argparse.ArgumentParser(description="")
@@ -14,14 +16,14 @@ def getArgs():
 def main(args):
 	
 	for fasta in SeqIO.parse(args.fasta, "fasta"):
-		name = fasta.id
-		sequence = str(fasta.seq)
-		singleFasta = open(name+'.fasta','w')
-		singleFasta.write('>'+name+'\n')
-		while len(sequence) > 0:
-			singleFasta.write(sequence[:70]+'\n')
-			sequence = sequence[70:]
-		singleFasta.close()
+
+		out = open(fasta.id+".fasta", "w")
+		
+		fasta_out = FastaWriter(out, wrap=70)
+		fasta_out.write_header()
+		fasta_out.write_record(fasta)
+		
+		out.close()
 
 if __name__ == '__main__':
 	args = getArgs()
