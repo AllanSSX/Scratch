@@ -32,7 +32,7 @@ def main(args):
 	
 	for i in sortedSeqByLgth:
 		chr = prefix + str(format(suffix, '06d'))
-		genome_fasta.write('>'+ chr + ' length=' + str(dictSeqLen[i]) + ' organism=Nosema granulosis\n')
+		genome_fasta.write('>'+ chr + '\n')#' length=' + str(dictSeqLen[i]) + '\n')# + ' organism=Nosema granulosis\n')
 		sequence = dictSeq[i]
 		while len(sequence) > 0:
 			genome_fasta.write(sequence[:70]+'\n')
