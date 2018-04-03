@@ -64,6 +64,12 @@ def main(args):
 				print(seq+'\t'+'\t'.join(coverage[seq])+'\t'+size+'\t'+gc+'\t'+taxo+'\tno-hit')
 			else:
 				print(seq+'\t'+'\t'.join(coverage[seq])+'\t'+size+'\t'+gc+'\t'+taxo+'\tothers')
+				# if re.search("Microsporidia", taxo):
+				# 	print(seq+'\t'+'\t'.join(coverage[seq])+'\t'+size+'\t'+gc+'\t'+taxo+'\tL5')
+				# elif not re.search("Arthropoda", taxo):
+				# 	print(seq+'\t'+'\t'.join(coverage[seq])+'\t'+size+'\t'+gc+'\t'+taxo+'\tothers')
+				# else:
+				# 	print(seq+'\t'+'\t'.join(coverage[seq])+'\t'+size+'\t'+gc+'\t'+taxo+'\tArthropoda')
 			
 	
 if __name__ == '__main__':
