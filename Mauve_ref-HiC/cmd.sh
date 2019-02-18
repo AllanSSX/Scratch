@@ -2,6 +2,7 @@
 
 #ref
 split_fasta.py -f Ectsi_genome_V3.fasta
+/projet/externe/inserm/acormier2/scripts/scripts/Scratch/Mauve_ref-HiC/liftOver2peusdo-gff.py -l /projet/abims/ectocarpus/finalresult/annotations/liftOver/genetic_map.chain.sctg > chr_sctg.gff3
 liftOver2peusdo-gff.py -l genetic_map.chain.sctg > chr_sctg.gff3
 for i in $(cut -f1 chr_sctg.gff3 | sort | uniq); do grep ${i} chr_sctg.gff3 > ${i}.gff3; done
 
