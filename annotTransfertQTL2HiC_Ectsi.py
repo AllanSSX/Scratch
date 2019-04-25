@@ -6,7 +6,8 @@ import argparse
 def getArgs():
 	parser = argparse.ArgumentParser(description="")
 	parser.add_argument('-c',dest="chain",type=argparse.FileType('r'),required=True,help='Old chain file (V1 -> V2)')
-	parser.add_argument('-f',dest="frags",type=argparse.FileType('r'),required=True,help='Info frags (simplified)')
+	# parser.add_argument('-f',dest="frags",type=argparse.FileType('r'),required=True,help='Info frags (simplified)')
+	parser.add_argument('-l',dest="lifted",type=argparse.FileType('r'),required=True,help='Bed lifted')
 	parser.add_argument('-n',dest="name",type=str,required=True,help='New chr name')
 	parser.add_argument('-s',dest="size",type=int,required=True,help='Size of the new chr')
 	
@@ -19,30 +20,48 @@ def main(args):
 	
 	chain_infos = {}
 	
-	
 	# 1 - recuperation des coordonnees dans l'ancien liftOver
 	# /!\ recalculer pour les sctg en orientation negative
+	"""
+	chain	1000	sctg_207	293188	+	0	293188	chr_01	10318834	+	0	293188	1
+	293188
+	chain	1000	sctg_486	77004	+	0	77004	chr_01	10318834	+	293288	370292	2
+	77004
+	chain	1000	sctg_516	63439	+	0	63439	chr_01	10318834	+	370392	433831	3
+	63439
+	chain	1000	sctg_228	263496	+	0	263496	chr_01	10318834	+	433931	697427	4
+	263496
+	chain	1000	sctg_151	413142	+	0	413142	chr_01	10318834	-	9208165	9621307	5
+	413142
+	chain	1000	sctg_112	523010	+	0	523010	chr_01	10318834	+	1110769	1633779	6
+	523010
+	"""
+	
 	for line in args.chain:
 		if line.startswith('chain'):
 			chain, score, tName, tSize, tStrand, tStart, tEnd, qName, qSize, qStrand, qStart, qEnd, idIter = line.split()
-			sctg = tName
+			# sctg = tName
 			
-			if qStrand == '-':
-				qStartOK = int(qSize) - int(qEnd)
-				qEndOK = int(qSize) -int(qStart)
-			else:
-				qStartOK = qStart
-				qEndOK = qEnd
+			# if qStrand == '-':
+			# 	qStartOK = int(qSize) - int(qEnd)
+			# 	qEndOK = int(qSize) -int(qStart)
+			# else:
+			# 	qStartOK = qStart
+			# 	qEndOK = qEnd
 			
-			chain_infos[sctg] = {'qtlStart': int(qStartOK), 'qtlEnd':int(qEndOK), 'qtlSize':int(qSize), 'sctgSize': int(tSize)}
-	
-	
+			# chain_infos[sctg] = {'qtlStart': int(qStartOK), 'qtlEnd':int(qEndOK), 'qtlSize':int(qSize), 'sctgSize': int(tSize)}
+		if not qName in chain_infos:
+			chain_infos[qName] = {'qtlSize':int(qSize), tName:qStrand}
+		else:
+			chain_infos[qName][tName] = qStrand
 	# check
 	# for key, value in chain_infos.items():
 	# 	print(key, value)
+	# 	
+	# exit(0)
 	
 	# 2 - creation du fichier liftOver
-	# /!\ contigs en stand -, calculer les coordonnes depuis la fin du chromosome cible
+	# /!\ contigs en stand -, calculer les coordonnes depuis la fin du chromosome cible, sauf si deja inverse dans la version qtl
 	"""
 	chain	1000	sctg_437	101602	+	0	101602	chr_22	4515851	+	0		101602	269
 	chain	1000	sctg_162	401382	+	0	401382	chr_22	4515851	+	101702	503084	270
@@ -66,37 +85,45 @@ def main(args):
 	endPos = 0
 	iterFrag = 1
 	
-	for line in args.frags:
-		if not line.startswith('>'):
-			chrQTL, strand, chrSCTG = line.split()
+	for line in args.lifted:
+		
+		chrQTL, startQTL, endQTL, orientation, sctgName = line.split()
+
+		qtlSize = chain_infos[chrQTL]['qtlSize']
+		# qtlStart = chain_infos[chrSCTG]['qtlStart']
+		# qtlEnd = chain_infos[chrSCTG]['qtlEnd']
+		addSize = int(endQTL) - int(startQTL)
 			
-			qtlSize = chain_infos[chrSCTG]['qtlSize']
-			qtlStart = chain_infos[chrSCTG]['qtlStart']
-			qtlEnd = chain_infos[chrSCTG]['qtlEnd']
-			addSize = chain_infos[chrSCTG]['sctgSize']
+		startHiC = startPos
+		endHiC = startPos + addSize
+	
+		if orientation == '1' and chain_infos[chrQTL][sctgName] == '+':
+			# print(sctgName)
+			orientation = '+'
+		elif orientation == '-1' and chain_infos[chrQTL][sctgName] == '-':
+			orientation = '+'
+		elif orientation == '1' and chain_infos[chrQTL][sctgName] == '-':
+			# print(sctgName)
+			orientation = '-'
+			# transform coordinate from the end of the chromosome
+			startHiC = args.size - (startPos + addSize) #endHiC 
+			endHiC = args.size - startPos #startHiC
+		else:
+			orientation = '-'
+			# transform coordinate from the end of the chromosome
+			startHiC = args.size - (startPos + addSize) #endHiC 
+			endHiC = args.size - startPos #startHiC
 			
+		qtlSize = str(qtlSize)
+		qtlStart = str(startQTL)
+		qtlEnd = str(endQTL)
 			
-			startHiC = startPos
-			endHiC = startPos + addSize
+		print('chain\t1000\t'+chrQTL+'\t'+qtlSize+'\t+\t'+qtlStart+'\t'+qtlEnd+'\t'+args.name+'\t'+str(args.size)+'\t'+orientation+'\t'+str(startHiC)+'\t'+str(endHiC)+'\t'+str(iterFrag))
+		print(str(addSize))
+		print('')
 			
-			if strand == '1':
-				strand = '+'
-			else:
-				strand = '-'
-				# transform coordinate from the end of the chromosome
-				startHiC = args.size - (startPos + addSize) #endHiC 
-				endHiC = args.size - startPos #startHiC
-			
-			qtlSize = str(qtlSize)
-			qtlStart = str(qtlStart)
-			qtlEnd = str(qtlEnd)
-			
-			print('chain\t1000\t'+chrQTL+'\t'+qtlSize+'\t+\t'+qtlStart+'\t'+qtlEnd+'\t'+args.name+'\t'+str(args.size)+'\t'+strand+'\t'+str(startHiC)+'\t'+str(endHiC)+'\t'+str(iterFrag))
-			print(str(addSize))
-			print('')
-			
-			startPos += addSize
-			iterFrag += 1
+		startPos += addSize
+		iterFrag += 1
 	
 if __name__ == '__main__':
 	args = getArgs()
