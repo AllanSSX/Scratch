@@ -6,8 +6,6 @@
 #SBATCH --partition=large
 #SBATCH --error=%x.sh.e%A
 #SBATCH --output=%x.sh.o%A
-#SBATCH --mail-user=alexandre.cormier@univ-poitiers.fr
-#SBATCH --mail-type=FAIL
 
 module load bioinf
 module load DBG2OLC/current
